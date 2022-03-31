@@ -1,12 +1,6 @@
 # Animated stickers for Telegram (*.tgs) to animated GIFs converter
 
-<hr/>
-<h3 align="center">
-To easily convert stickers to GIFs you can use Telegram Bot</br></br>👉 https://t.me/tgstogifbot 👈
-</h3>
-<hr/>
-
-*FYI: There is a test version of converter written in C++ in [master-cpp](https://github.com/ed-asriyan/tgs-to-gif/tree/master-cpp) branch. It works a little faster, but generated GIFs may contain [some artifacts](https://github.com/ed-asriyan/tgs-to-gif/issues/13#issuecomment-633244547).*
+> This is a modified version to make it an NPM module and use it for my own purposes.
 
 ## Using [Docker](https://www.docker.com/)
 1. Build the image:

@@ -1,10 +1,10 @@
 {
   "name": "tgs2gif",
-  "version": "1.0.0",
+  "version": "1001",
   "description": "Converts animated stickers for Telegram (*.tgs) to animated GIFs",
   "exports": {
     ".": "./index.js",
-    "./utils": "./utils"
+    "./utils": "./utils.js"
   },
   "type": "module",
   "scripts": {

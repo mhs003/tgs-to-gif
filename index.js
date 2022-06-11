@@ -1,5 +1,5 @@
 import fs from 'fs';
-import execa from 'execa';
+import { execa } from 'execa';
 import zlib from 'zlib';
 import render from './render.js';
 import { createBrowser, saveScreenshots, streamToString } from './utils.js';
@@ -26,16 +26,18 @@ const normalizeOptions = function (animationData, options) {
 };
 
 const fromStream = function (converter) {
-  return async (inputStream, outputPath, options) => {
+  return async (inputStream, outputPath, options = {}) => {
     const lottieString = await streamToString(inputStream.pipe(zlib.createGunzip()));
-    let browser;
-    if (!options.browser) {
-      options.browser = browser = await createBrowser();
+    let browser = options.browser;
+    let isBrowserCreated = false;
+    if (!browser) {
+      browser = await createBrowser();
+      isBrowserCreated = true;
     }
 
     const animationData = JSON.parse(lottieString);
-    const result = await converter(animationData, outputPath, normalizeOptions(animationData, options));
-    if (browser) {
+    const result = await converter(animationData, outputPath, normalizeOptions(animationData, { browser, ...options }));
+    if (isBrowserCreated) {
       await browser.close();
     }
     return result;
@@ -52,19 +54,20 @@ export const toGif = fromStream(async function (animationData, outputPath, optio
   options.quality = options.quality || 80;
   options.fps = options.fps || Math.min(animationData.fr, 50); // most viewers do not support gifs with FPS > 50
 
-  const { dir, pattern } = await saveScreenshots(await render(options.browser, animationData, options));
+  const { dir, files } = await saveScreenshots(await render(options.browser, animationData, options));
 
   try {
-    await execa.shell([
+    await execa(
       process.env.GIFSKI_PATH || 'gifski',
-      '-o', `"${outputPath}"`,
-      '--fps', options.fps,
-      '--quality', options.quality,
-      '--height', options.height,
-      '--width', options.width,
-      '--quiet',
-      pattern,
-    ].join(' '));
+      [
+        '-o', outputPath,
+        '--fps', options.fps,
+        '--quality', options.quality,
+        '--height', options.height,
+        '--width', options.width,
+        '--quiet',
+        ...files,
+      ]);
   } catch (e) {
     throw e;
   } finally {
@@ -84,13 +87,14 @@ export const toWebP = fromStream(async function (animationData, outputPath, opti
   const { dir, files } = await saveScreenshots(await render(options.browser, animationData, options));
 
   try {
-    await execa.shell([
+    await execa(
       process.env.IMG2WEBP_PATH || 'img2webp',
-      '-lossy',
-      '-d', Math.round(1000 / options.fps),
-      ...files,
-      '-o', `"${outputPath}"`,
-    ].join(' '));
+      [
+        '-lossy',
+        '-d', Math.round(1000 / options.fps),
+        ...files,
+        '-o', outputPath,
+      ]);
   } catch (e) {
     throw e;
   } finally {
